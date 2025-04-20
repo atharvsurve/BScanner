@@ -1,12 +1,17 @@
 const express = require('express');
+const cors = require('cors'); // ✅ Add this line
 const app = express();
 const port = 5000;
 const connectDB = require('./config/db');
 
-const cardRoutes = require('./routes/cardRoutes');
-const authRoutes = require("./routes/authRoutes");
+// ✅ Enable CORS
+app.use(cors());
 
 app.use(express.json());
+
+const cardRoutes = require('./routes/cardRoutes');
+const authRoutes = require('./routes/authRoutes');
+
 app.use('/api/card', cardRoutes);
 app.use('/api/auth', authRoutes);
 
