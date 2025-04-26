@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');// Create a config file for your JWT_SECRET
 const JWT_SECRET = 'your_jwt_secret_key';
 // Signup controller
 exports.signup = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password } = req.body; // 👈 take role also
 
   try {
     // Check if the user already exists
@@ -24,6 +24,7 @@ exports.signup = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role: 'user',  // 👈 set role if provided, else default to 'user'
     });
 
     // Save user to the database
