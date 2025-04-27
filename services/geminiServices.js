@@ -34,7 +34,7 @@ exports.processImage = async (imagePath) => {
     const imageBase64 = fileToBase64(imagePath);
     const mimeType = getMimeType(imagePath);
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
     
     // Creating a more specific prompt with explicit formatting instructions
     const prompt = `
