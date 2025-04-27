@@ -3,43 +3,83 @@ const fs = require('fs');
 const Card = require('../models/Card'); // Import the Card model
 const User = require('../models/User'); // Adjust path as needed
 
-// Helper function to clean JSON string
-const cleanJsonString = (jsonString) => {
-  // Remove control characters (except for \t, \n, \r)
-  return jsonString.replace(/[\x00-\x1F\x7F]/g, "");
+const fs = require('fs');
+
+const validateCardData = (data) => {
+  // At minimum, a business card should have either a name or company
+  return data && (data.name || data.company || data.email || data.phone);
 };
 
 exports.extractCardDetails = async (req, res) => {
+  let imagePath = null;
+  
   try {
+    // Check if file exists in request
     if (!req.file) {
-      return res.status(400).json({ message: 'No image uploaded' });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No image uploaded' 
+      });
     }
 
-    const imagePath = req.file.path;
+    imagePath = req.file.path;
+    console.log(`Processing image at path: ${imagePath}`);
+    
+    // Process the image using Gemini service - our improved service should handle JSON parsing
     const result = await geminiService.processImage(imagePath);
-
-    // Optional: delete file after processing
-    fs.unlinkSync(imagePath);
-
-    // Get the raw response
-    const raw = result?.rawResponse || result?.cleaned || '';
     
-    // Use regex to extract JSON object from the response
-    const match = raw.match(/\{.*\}/s);
-    const jsonOutput = match ? match[0] : null;
-    
-    // Clean and parse the JSON
-    let parsedData = {};
-    try {
-      parsedData = JSON.parse(cleanJsonString(jsonOutput) || "{}");
-    } catch (e) {
-      console.warn('JSON parse failed:', e.message);
+    // Check if we got a structured result or an error object
+    if (!result) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to process image with Gemini service'
+      });
     }
-
-    res.status(200).json({ structuredData: parsedData });
+    
+    // If the result contains rawResponse, it means JSON parsing failed
+    if (result.rawResponse) {
+      console.warn('Gemini returned non-JSON response:', result);
+      return res.status(422).json({
+        success: false,
+        message: 'Failed to parse business card details',
+        rawResponse: result.rawResponse.substring(0, 500),
+        cleaned: result.cleaned
+      });
+    }
+    
+    // Validate the extracted data
+    if (!validateCardData(result)) {
+      console.warn('Extracted data failed validation:', result);
+      return res.status(422).json({
+        success: false,
+        message: 'Failed to extract valid business card details',
+        extractedData: result
+      });
+    }
+    
+    // Success - return the structured data
+    return res.status(200).json({
+      success: true,
+      structuredData: result
+    });
+    
   } catch (error) {
-    console.error('Error in extractCardDetails:', error.message);
-    res.status(500).json({ error: 'Failed to extract card details' });
+    console.error('Error in extractCardDetails:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to extract card details',
+      error: error.message
+    });
+  } finally {
+    // Clean up the uploaded file
+    if (imagePath && fs.existsSync(imagePath)) {
+      try {
+        fs.unlinkSync(imagePath);
+        console.log(`Cleaned up temporary file: ${imagePath}`);
+      } catch (unlinkError) {
+        console.error('Failed to delete temporary file:', unlinkError);
+      }
+    }
   }
 };
 
