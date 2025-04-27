@@ -139,3 +139,32 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve users' });
   }
 };
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params; // get user id from URL
+
+    const requestingUser = await User.findById(req.user.id);
+
+    if (!requestingUser) {
+      return res.status(404).json({ message: 'Requesting user not found' });
+    }
+
+    if (requestingUser.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin privileges required' });
+    }
+
+    const deletedUser = await User.findByIdAndDelete(id);
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'User not found to delete' });
+    }
+
+    res.status(200).json({ message: 'User deleted successfully' });
+
+  } catch (error) {
+    console.error('Error deleting user:', error.message);
+    res.status(500).json({ error: 'Server error while deleting user' });
+  }
+};
+
