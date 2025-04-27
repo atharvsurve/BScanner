@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const cardController = require('../controllers/cardController');
+const userController = require('../controllers/authController');
 const auth = require('../middleware/authMiddleware'); // Import auth middleware
 
 // Configure multer for file uploads
