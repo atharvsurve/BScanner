@@ -3,6 +3,12 @@ const fs = require('fs');
 const Card = require('../models/Card'); // Import the Card model
 const User = require('../models/User'); // Adjust path as needed
 
+// Helper function to clean JSON string
+const cleanJsonString = (jsonString) => {
+  // Remove control characters (except for \t, \n, \r)
+  return jsonString.replace(/[\x00-\x1F\x7F]/g, "");
+};
+
 exports.extractCardDetails = async (req, res) => {
   try {
     if (!req.file) {
@@ -15,16 +21,17 @@ exports.extractCardDetails = async (req, res) => {
     // Optional: delete file after processing
     fs.unlinkSync(imagePath);
 
-    // Clean the raw response
+    // Get the raw response
     const raw = result?.rawResponse || result?.cleaned || '';
-    const jsonStr = raw
-      .replace(/```json\n?/g, '')  // remove markdown formatting
-      .replace(/```/g, '')         // remove closing backticks
-      .trim();
-
+    
+    // Use regex to extract JSON object from the response
+    const match = raw.match(/\{.*\}/s);
+    const jsonOutput = match ? match[0] : null;
+    
+    // Clean and parse the JSON
     let parsedData = {};
     try {
-      parsedData = JSON.parse(jsonStr);
+      parsedData = JSON.parse(cleanJsonString(jsonOutput) || "{}");
     } catch (e) {
       console.warn('JSON parse failed:', e.message);
     }

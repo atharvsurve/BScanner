@@ -78,3 +78,64 @@ exports.login = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
+
+exports.getProfile = async (req, res) => {
+  try {
+    // Find user by ID (req.user.id is set by authMiddleware)
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Prepare user data to send
+    const userData = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+
+    res.json({ user: userData });
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    // Check if the requesting user is an admin
+    const requestingUser = await User.findById(req.user.id);
+    
+    if (!requestingUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Verify the user has admin role
+    if (requestingUser.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin privileges required' });
+    }
+    
+    // If admin, fetch ALL users
+    const allUsers = await User.find({});
+    
+    // Map users to include businessCards and necessary fields
+    const usersData = allUsers.map(user => ({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      cards: user.businessCards || [] // Include the business cards
+    }));
+    
+    // Return an array of users directly
+    res.status(200).json(usersData);
+    
+  } catch (error) {
+    console.error('Error in getAllUsers:', error.message);
+    res.status(500).json({ error: 'Failed to retrieve users' });
+  }
+};
