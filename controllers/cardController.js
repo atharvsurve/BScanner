@@ -3,7 +3,6 @@ const fs = require('fs');
 const Card = require('../models/Card'); // Import the Card model
 const User = require('../models/User'); // Adjust path as needed
 
-const fs = require('fs');
 
 const validateCardData = (data) => {
   // At minimum, a business card should have either a name or company
