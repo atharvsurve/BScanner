@@ -41,6 +41,5 @@ router.post('/upload', auth, upload.single('image'), cardController.extractCardD
 router.post('/submit', auth, cardController.submitCardDetails);
 router.get('/all', auth, cardController.getAllCards);
 router.delete('/delete/:id', auth, cardController.deleteCardById); 
-router.delete('/admin/delete/:id', auth, userController.deleteUser);
 
 module.exports = router;
