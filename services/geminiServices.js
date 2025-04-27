@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyApprbNh-WekHvaCJ_UJDVynDSW8_aaIVw';
+const API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyCZtdss8kkUWiQ2wu4lDJScFGVAr6AQqGI';
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 function fileToBase64(filePath) {
