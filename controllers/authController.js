@@ -120,7 +120,7 @@ exports.getAllUsers = async (req, res) => {
     }
     
     // If admin, fetch ALL users
-    const allUsers = await User.find({});
+    const allUsers = await User.find({ role: { $ne: 'admin' } });
     
     // Map users to include businessCards and necessary fields
     const usersData = allUsers.map(user => ({
